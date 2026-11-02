@@ -46,7 +46,11 @@ cd labs/<lab-name>
 ./down.sh    # or: vagrant destroy
 ```
 
-Labs default to lightweight VMs (about 1 GB RAM each). Check the lab's README before starting one.
+Labs default to lightweight VMs (about 1 GB RAM each, less where tested). Check the lab's README before starting one.
+
+| Lab | What it is |
+|-----|-----------|
+| [hpc-training-cluster](labs/hpc-training-cluster/README.md) | A small Rocky Linux 9 cluster (1 login + 2 compute nodes, 512 MB each) for learning HPC administration, troubleshooting and Slurm, chapter by chapter. Start with `python3 lab.py check` in that folder. |
 
 ## Principles
 

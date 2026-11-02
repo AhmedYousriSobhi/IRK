@@ -15,7 +15,7 @@ A small virtual cluster for learning HPC system administration by doing. You wor
 - **OS:** Rocky Linux 9. Other RHEL 9 clones are accepted by the scripts but not tested.
 - **Providers:** VirtualBox, libvirt, or QEMU, through Vagrant.
 - **Memory per node:** 512 MB by default, tested through the whole lab including Slurm. Raise it with `LAB_MEM_MB` (see Settings) if you install extra software or run memory-hungry jobs.
-- **Host needs:** 8 GB RAM for the full lab (4 GB for a reduced 2-node lab), about 50 GB free disk, CPU virtualization enabled, Python 3.8+.
+- **Host needs:** 6 GB RAM for the full lab (4 GB for a reduced 2-node lab; the VMs themselves use about 1.5 GB), about 50 GB free disk, CPU virtualization enabled, Python 3.8+.
 
 ## Quick start (chapter 0)
 

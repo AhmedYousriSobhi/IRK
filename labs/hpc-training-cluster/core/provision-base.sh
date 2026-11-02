@@ -63,7 +63,7 @@ sed -i '/# BEGIN hpc-lab/,/# END hpc-lab/d' /etc/hosts
 } >> /etc/hosts
 log "hostname and /etc/hosts set"
 
-# ---- swap: a 1 GB VM needs a safety net while installs run -----------------
+# ---- swap: a small VM needs a safety net while installs run -----------------
 if [ -z "$(swapon --show --noheadings)" ]; then
   dd if=/dev/zero of=/swapfile bs=1M count=1024 status=none
   chmod 600 /swapfile

@@ -42,8 +42,8 @@ TOOL_VERSION = "0.2.0"
 GIB = 1024 ** 3
 
 # ---- thresholds (edit here if the lab sizing changes) ----------------------
-MIN_RAM_FULL_GIB = 7       # 8 GB laptops report ~7.x GiB; enough for 3 VMs x 1 GB
-MIN_RAM_REDUCED_GIB = 3.5  # 4 GB laptops: reduced lab (login + 1 compute)
+MIN_RAM_FULL_GIB = 5       # 3 VMs x 512 MB use ~1.5 GB of host RAM (measured); the rest is for the host system
+MIN_RAM_REDUCED_GIB = 3.5  # 4 GB laptops: reduced lab (login + 1 compute, ~1 GB of host RAM)
 MIN_CORES_OK = 4
 MIN_CORES_FAIL = 2
 DISK_OK_GIB = 50
@@ -276,7 +276,7 @@ def check_cpu(ctx):
 def check_ram(ctx):
     total = total_ram_bytes(ctx["env"]["os"])
     if total is None:
-        return Result(WARN, "Memory", "could not be read", "Check how much RAM your computer has: the full lab needs 7 GiB, the reduced lab 3.5 GiB.")
+        return Result(WARN, "Memory", "could not be read", "Check how much RAM your computer has: the full lab needs %g GiB, the reduced lab %g GiB." % (MIN_RAM_FULL_GIB, MIN_RAM_REDUCED_GIB))
     gib = total / float(GIB)
     ctx["ram_gib"] = round(gib, 1)
     detail = "%.1f GiB" % gib
