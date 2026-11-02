@@ -8,6 +8,7 @@
 - [Lab Guide](Lab-Guide)
 - [Development Workflow](Development-Workflow)
 - [Wiki Maintenance](Wiki-Maintenance)
+- [Blog: The /dev/null mistake](Blog-The-devnull-Mistake)
 
 ## Labs
 - [hpc-training-cluster](https://github.com/AhmedYousriSobhi/IRK/tree/main/labs/hpc-training-cluster) - self-paced tutorial cluster (1 login + 2 compute nodes) with troubleshooting exercises. Being imported (#4).
