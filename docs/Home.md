@@ -10,7 +10,7 @@
 - [Wiki Maintenance](Wiki-Maintenance)
 
 ## Labs
-_No labs yet. Each lab gets an entry here when it lands._
+- [hpc-training-cluster](https://github.com/AhmedYousriSobhi/IRK/tree/main/labs/hpc-training-cluster) - self-paced tutorial cluster (1 login + 2 compute nodes) with troubleshooting exercises. Being imported (#4).
 
 ## Source
 This wiki is mirrored from the [`docs/`](https://github.com/AhmedYousriSobhi/IRK/tree/main/docs) folder in the repository. Edit `docs/`, not the wiki UI.
