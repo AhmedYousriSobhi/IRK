@@ -8,14 +8,14 @@ A small virtual cluster for learning HPC system administration by doing. You wor
 
 | Node | Role | IP | Resources |
 |---|---|---|---|
-| `login` | Login node, NFS server for `/shared` | 192.168.56.10 | 512 MB RAM, 1 vCPU |
-| `compute1` | Compute node | 192.168.56.11 | 512 MB RAM, 1 vCPU |
-| `compute2` | Compute node | 192.168.56.12 | 512 MB RAM, 1 vCPU |
+| `login` | Login node, NFS server for `/shared` | 192.168.56.10 | 1 GB RAM, 1 vCPU |
+| `compute1` | Compute node | 192.168.56.11 | 1 GB RAM, 1 vCPU |
+| `compute2` | Compute node | 192.168.56.12 | 1 GB RAM, 1 vCPU |
 
 - **OS:** Rocky Linux 9. Other RHEL 9 clones are accepted by the scripts but not tested.
 - **Providers:** VirtualBox, libvirt, or QEMU, through Vagrant.
-- **Memory per node:** 512 MB by default, tested through the whole lab including Slurm. Raise it with `LAB_MEM_MB` (see Settings) if you install extra software or run memory-hungry jobs.
-- **Host needs:** 6 GB RAM for the full lab (4 GB for a reduced 2-node lab; the VMs themselves use about 1.5 GB), about 50 GB free disk, CPU virtualization enabled, Python 3.8+.
+- **Memory per node:** 1 GB by default. Building Slurm (chapter 7) and installing extra software need the room. Change it with `LAB_MEM_MB` (see Settings).
+- **Host needs:** 8 GB RAM for the full lab (4 GB for a reduced 2-node lab), about 50 GB free disk, CPU virtualization enabled, Python 3.8+.
 
 ## Quick start (chapter 0)
 
@@ -48,7 +48,7 @@ Set them as environment variables before `vagrant up` (all optional). Example: `
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `LAB_MEM_MB` | `512` | RAM per node in MB |
+| `LAB_MEM_MB` | `1024` | RAM per node in MB |
 | `LAB_LOGIN_MEM_MB` | same as `LAB_MEM_MB` | RAM for the login node only |
 | `LAB_CPUS` | `1` | vCPUs per node |
 | `LAB_COMPUTE` | `2` (`1` on a `reduced` profile) | Number of compute nodes (1 to 9) |

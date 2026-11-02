@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 #
-# HPC training cluster: 1 login node + compute nodes (Rocky Linux 9), 512 MB RAM each by default (set LAB_MEM_MB to change it).
+# HPC training cluster: 1 login node + compute nodes (Rocky Linux 9), 1 GB RAM each by default (set LAB_MEM_MB to change it).
 # Providers: VirtualBox, libvirt, QEMU (vagrant-qemu).
 #
 #   1. python lab.py check --save         (writes lab-profile.json: arch, provider, profile)
@@ -14,14 +14,13 @@
 #
 # Settings (environment variables, all optional):
 #   LAB_BOX / LAB_BOX_URL   box name / direct link or path to a .box file (see BOX below)
-#   LAB_MEM_MB    RAM per node in MB, default 512   LAB_LOGIN_MEM_MB  RAM for the login node only
+#   LAB_MEM_MB    RAM per node in MB, default 1024  LAB_LOGIN_MEM_MB  RAM for the login node only
 #   LAB_CPUS      vCPUs per node, default 1         LAB_COMPUTE       compute nodes (default 2, or 1 on a 'reduced' laptop)
 #   LAB_PASSWORD  password of the lab accounts, default hpclab
 #   LAB_SUBNET    first three octets of the private network, default 192.168.56
 #   LAB_VM_PREFIX prefix of the VM and network names, default hpc-  (change both to run next to another lab)
-# 512 MB was tested with the whole lab (about 300 MB stays free on a node with Slurm running). If you install
-# extra software or run memory-hungry jobs, raise it:  LAB_MEM_MB=1024 vagrant up
-# Example: LAB_COMPUTE=3 LAB_MEM_MB=768 vagrant up   (a bigger cluster)
+# Example: LAB_MEM_MB=2048 vagrant up   (more room for your own experiments)
+# Example: LAB_COMPUTE=3 vagrant up     (a bigger cluster)
 
 require 'json'
 
@@ -51,7 +50,7 @@ if saved['arch'] == 'aarch64' && !ENV['LAB_BOX'] && ARGV.first == 'up'
 end
 
 # Constants (upper case in Ruby) hold the settings for the rest of the file; the environment variable wins.
-MEM_MB       = (ENV['LAB_MEM_MB'] || 512).to_i
+MEM_MB       = (ENV['LAB_MEM_MB'] || 1024).to_i
 LOGIN_MEM_MB = (ENV['LAB_LOGIN_MEM_MB'] || MEM_MB).to_i
 CPUS         = (ENV['LAB_CPUS'] || 1).to_i
 COMPUTE      = [[(ENV['LAB_COMPUTE'] || (PROFILE == 'reduced' ? 1 : 2)).to_i, 1].max, 9].min

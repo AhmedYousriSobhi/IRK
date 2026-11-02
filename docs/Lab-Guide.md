@@ -5,7 +5,7 @@ Labs in `labs/` are isolated, reproducible environments to simulate, benchmark, 
 ## Requirements
 - **Self-contained:** no dependency on files outside the lab directory, except documented `bin/` tools.
 - **Declarative:** prefer Vagrantfiles, Ansible playbooks, and compose files over manual shell steps.
-- **Lightweight:** default to about 1 GB RAM per VM unless the lab states otherwise. Measure before you choose; a lab may go lower (see below).
+- **Lightweight:** default to about 1 GB RAM per VM unless the lab states otherwise. Measure before you go lower, and state the measured limit in the lab's README.
 - **Naming:** lowercase, hyphenated (`hpc-pocket-cluster`).
 
 ## Required files
@@ -28,6 +28,4 @@ A lab with several topics can be split into a small `core/` (applied to every no
 ## Existing labs
 | Lab | What it is | Nodes | RAM per node |
 |-----|-----------|-------|--------------|
-| [hpc-training-cluster](https://github.com/AhmedYousriSobhi/IRK/tree/main/labs/hpc-training-cluster) | Self-paced tutorial cluster (Rocky Linux 9) with troubleshooting exercises, Slurm and health checks. Start at its README. | 1 login + 2 compute (1 to 9 configurable) | 512 MB (tested through the whole lab; `LAB_MEM_MB` raises it) |
-
-Labs that use less than 1 GB state the measured limit in their own README, so the number is checked, not assumed.
+| [hpc-training-cluster](https://github.com/AhmedYousriSobhi/IRK/tree/main/labs/hpc-training-cluster) | Self-paced tutorial cluster (Rocky Linux 9) with troubleshooting exercises, Slurm and health checks. Start at its README. | 1 login + 2 compute (1 to 9 configurable) | 1 GB (`LAB_MEM_MB` changes it) |

@@ -76,7 +76,7 @@ Example: `SLURM_CLEAN=1 vagrant provision login --provision-with stage-clean,sta
 
 ## Resources
 
-The Slurm daemons are small: about 13 MB for `slurmctld` and 8 MB for `slurmd`. The default 512 MB per node is enough (measured on 1 GB nodes, and the whole chapter was run again on 512 MB nodes). Slurm's `RealMemory` for a node must not exceed what `slurmd -C` reports (about 450 MB on a 512 MB node); the template uses `CHANGE_ME` so you read the real value.
+The Slurm daemons are small: about 13 MB for `slurmctld` and 8 MB for `slurmd`. The default 1 GB per node is enough. Slurm's `RealMemory` for a node must not exceed what `slurmd -C` reports (about 950 MB on a 1 GB node); the template uses `CHANGE_ME` so you read the real value.
 
 ## Reset
 
