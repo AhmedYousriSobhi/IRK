@@ -78,4 +78,4 @@ Run `lab-verify` on a node after each chapter. It checks hostname, name resoluti
 
 Chapter 6 (module [02-troubleshooting](../02-troubleshooting/README.md)) puts these skills to work on faults you did not cause.
 
-> **Status:** the five chapters are written. Every command in them was run on a 3-node Rocky Linux 9.3 cluster, and the output they describe is what that cluster printed. Chapters 6 to 9 live in the READMEs of modules 02, 03 and 04.
+> **Status:** the five chapters are written. The commands were run piece by piece on a 3-node Rocky Linux 9.3 cluster, and the output the chapters describe is what that cluster printed. The chapters have not yet been followed start to finish by someone new to Linux. Chapters 6 to 9 live in the READMEs of modules 02, 03 and 04.
