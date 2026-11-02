@@ -56,9 +56,9 @@ PASSWORD     = ENV['LAB_PASSWORD']
 SUBNET       = ENV['LAB_SUBNET'] || '192.168.56'
 VM_PREFIX    = ENV['LAB_VM_PREFIX'] || 'hpc-'
 
-if PROFILE == 'hosted' && ARGV.first == 'up'
-  abort "lab: this machine is marked 'hosted' (too little RAM or an unsupported OS), so the lab " \
-        'should not run locally. Use a hosted VM instead, or set LAB_PROFILE=full to override.'
+if PROFILE == 'unsupported' && ARGV.first == 'up'
+  abort "lab: lab.py marked this machine 'unsupported' (too little RAM or CPU, or an unsupported OS), " \
+        'so the lab should not run locally. Use another machine or a cloud VM, or set LAB_PROFILE=full to override.'
 end
 
 if %w[up provision reload].include?(ARGV.first)
