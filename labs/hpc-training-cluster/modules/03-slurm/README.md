@@ -8,7 +8,7 @@ Prerequisite: chapters 1 to 5 ([01-sysadmin-foundations](../01-sysadmin-foundati
 
 | Tool | Where it comes from | What it does |
 |---|---|---|
-| `provision.sh` | run with `vagrant provision --provision-with slurm` | Prepares every node. It does **not** install or start Slurm; that is your job. |
+| `provision.sh` | run with `vagrant provision --provision-with slurm` | Prepares every node and builds the Slurm packages (login node, once). It does **not** install or start Slurm; that is your job. |
 | `slurm-verify` | installed by the provisioner | Checks the Slurm build on the node you are on. On the login node it also runs a test job on every compute node. |
 | `why-pending` | installed by the provisioner | Explains in plain words why a job is waiting, who has to act, and the first command to run. |
 
@@ -26,18 +26,19 @@ vagrant provision compute1 --provision-with stage-clean,stage,stage-modules,slur
 vagrant provision compute2 --provision-with stage-clean,stage,stage-modules,slurm
 ```
 
-It is safe to repeat. It takes about a minute per node.
+It is safe to repeat. The login node takes about 10 minutes the first time, because it builds Slurm from source (see [Which Slurm version](#which-slurm-version)); a repeat run skips the build. Each compute node takes about a minute.
 
 After it runs, every node has:
 
-- the repositories Slurm needs (EPEL and CRB),
+- the repositories the build and munge need (EPEL and CRB),
+- on the login node, the Slurm packages (`.rpm` files) in `/shared/slurm-lab/rpms/`, which every node can read,
 - the `slurm` and `munge` accounts with the same IDs everywhere,
 - munge installed with the **same key** on every node, not started,
 - on the login node, `/shared/slurm-lab/` with a `slurm.conf.template` and a step-by-step `README.txt`.
 
 ### 2. Follow the checklist
 
-Read `/shared/slurm-lab/README.txt` on the login node and work through it: start munge and prove it works across nodes, install the right packages on each side, read `slurmd -C` for the memory value, finish `slurm.conf`, create the directories, start the daemons, and run `sinfo` and `srun -N1 hostname`.
+Read `/shared/slurm-lab/README.txt` on the login node and work through it: start munge and prove it works across nodes, install the right packages on each side from `/shared/slurm-lab/rpms/` (the controller needs different ones from a compute node), read `slurmd -C` for the memory value, finish `slurm.conf`, create the directories, start the daemons, and run `sinfo` and `srun -N1 hostname`.
 
 If something fails, read the logs and look at the three usual suspects: the clock, the munge key and name resolution.
 
@@ -63,6 +64,12 @@ why-pending --codes      # the glossary of reason codes
 
 It is read-only. Use it to understand the user's question before you answer, and `collect-evidence` (module [02-troubleshooting](../02-troubleshooting/README.md)) when you need to escalate.
 
+## Which Slurm version
+
+The lab builds Slurm 26.05.5 from the official source tarball at `download.schedmd.com` and checks its SHA-256 before building. EPEL only offers Slurm 22.05, an old release that upstream no longer supports, so the packages from the distribution would teach you to run a version you should not run. The build uses the same steps an admin uses on a real cluster: `rpmbuild -ta`, then install the packages with `dnf`.
+
+To try another release, set `SLURM_VERSION` (for example `SLURM_VERSION=26.05.4`). The lab was tested only with 26.05.5; the checksum of any other version is read from SchedMD's list.
+
 ## Options
 
 Set these on your host before running the provisioner:
@@ -70,16 +77,17 @@ Set these on your host before running the provisioner:
 | Setting | Effect |
 |---|---|
 | `SLURM_NO_KEY=1` | Do not place the munge key on compute nodes. You copy it yourself (needs SSH keys from chapter 3). |
-| `SLURM_CLEAN=1` | Remove the staged key and template from `/shared/slurm-lab` (login node). Do this when you are done: the lab leaves the key on shared storage for convenience, which a real cluster never does. |
+| `SLURM_CLEAN=1` | Remove the staged munge key, template and checklist from `/shared/slurm-lab` (login node). Do this when you are done: the lab leaves the key on shared storage for convenience, which a real cluster never does. The built packages are kept. |
+| `SLURM_VERSION=<x.y.z>` | Build another Slurm release (default 26.05.5). |
 
 Example: `SLURM_CLEAN=1 vagrant provision login --provision-with stage-clean,stage,stage-modules,slurm`
 
 ## Resources
 
-The Slurm daemons are small: about 13 MB for `slurmctld` and 8 MB for `slurmd`. The default 1 GB per node is enough. Slurm's `RealMemory` for a node must not exceed what `slurmd -C` reports (about 950 MB on a 1 GB node); the template uses `CHANGE_ME` so you read the real value.
+The Slurm daemons are small: about 18 MB for `slurmctld` and 11 MB for `slurmd` (measured with 26.05.5). The default 1 GB per node is enough, including for the one-time build on the login node. Slurm's `RealMemory` for a node must not exceed what `slurmd -C` reports (about 950 MB on a 1 GB node); the template uses `CHANGE_ME` so you read the real value.
 
 ## Reset
 
 Remove Slurm's state by restoring the snapshot you took before this chapter (`vagrant snapshot save before-slurm` first), or by re-running the provisioner, which is safe but does not uninstall packages.
 
-> **Status:** the provisioner and both tools are imported and tested on a 3-node Rocky Linux 9 cluster. The written chapter text is not part of this module yet ([#6](https://github.com/AhmedYousriSobhi/IRK/issues/6)); the admin-side solution is tracked in [#5](https://github.com/AhmedYousriSobhi/IRK/issues/5).
+> **Status:** the provisioner and both tools are imported and tested on a 3-node Rocky Linux 9 cluster with Slurm 26.05.5 (fresh `vagrant up`, provisioner, hand-built Slurm, `slurm-verify` with and without SSH keys between nodes). The written chapter text is not part of this module yet ([#6](https://github.com/AhmedYousriSobhi/IRK/issues/6)); the admin-side solution is tracked in [#5](https://github.com/AhmedYousriSobhi/IRK/issues/5).

@@ -73,7 +73,7 @@ if [ -r "$CONF" ]; then
   if grep -v '^[[:space:]]*#' "$CONF" | grep -q 'CHANGE_ME'; then bad "slurm.conf" "still contains CHANGE_ME" "Run 'slurmd -C' on a compute node and put the RealMemory value in the NodeName lines."; fi
   cluster="$(conf_val ClusterName)"; [ -n "$cluster" ] && info "slurm.conf" "ClusterName=$cluster"
 else
-  bad "slurm.conf" "$CONF is missing or unreadable" "Copy /shared/slurm-lab/slurm.conf.template to $CONF after editing it."
+  bad "slurm.conf" "$CONF is missing or unreadable" "Create the directory (sudo mkdir -p $(dirname "$CONF")), then copy /shared/slurm-lab/slurm.conf.template to $CONF after editing it."
 fi
 
 dir_check() {  # dir_check <label> <path> <owner>

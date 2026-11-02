@@ -5,7 +5,10 @@
 #   vagrant provision --provision-with stage-clean,stage,stage-modules,slurm
 #
 # What it does (it does NOT install or start Slurm; the learner does that):
-#   - enables the extra repositories Slurm needs (EPEL, CRB) and reports which Slurm packages exist
+#   - enables the extra repositories (EPEL, CRB)
+#   - login node: builds Slurm RPMs from the official SchedMD source (version below, checksum
+#     verified) into /shared/slurm-lab/rpms, once. The compute nodes install from there.
+#     Takes about 10 minutes on a 1-vCPU login node; later runs skip it
 #   - creates the 'slurm' and 'munge' accounts with the same IDs on every node
 #   - installs munge and puts the SAME munge key on every node (not started)
 #   - login node: writes a slurm.conf template and a step-by-step checklist to /shared/slurm-lab/
@@ -14,7 +17,10 @@
 # Options (or the same names as environment variables on the host running vagrant):
 #   --no-key   SLURM_NO_KEY=1   do not place the munge key on compute nodes
 #                               (the learner copies it, which needs the SSH keys from chapter 3)
-#   --clean    SLURM_CLEAN=1    remove the staged key and template from /shared/slurm-lab (login node)
+#   --clean    SLURM_CLEAN=1    remove the staged munge key, template and checklist from /shared/slurm-lab
+#                               (login node); the built RPMs are kept
+#   SLURM_VERSION=26.05.5       Slurm release to build (default below). A version other than the default
+#                               is checked against the checksum list on download.schedmd.com
 #
 # Safe to run more than once.
 set -euo pipefail
@@ -22,11 +28,15 @@ set -euo pipefail
 RELEASE_FILE="${LAB_RELEASE_FILE:-/etc/hpc-lab-release}"
 NO_KEY="${SLURM_NO_KEY:-0}"
 CLEAN="${SLURM_CLEAN:-0}"
+# Latest 26.05 release when this was written; the SHA-256 is from https://download.schedmd.com/slurm/SHA256
+DEFAULT_VERSION=26.05.5
+DEFAULT_SHA256=4680cafc82b0689865c885eb703441e7ebf764896c40fd03a50f2fcb60664f68
+VERSION="${SLURM_VERSION:-$DEFAULT_VERSION}"
 for arg in "$@"; do
   case "$arg" in
     --no-key) NO_KEY=1 ;;
     --clean)  CLEAN=1 ;;
-    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,23p' "$0"; exit 0 ;;
     *) echo "slurm provision: unknown option '$arg' (see --help)" >&2; exit 2 ;;
   esac
 done
@@ -48,8 +58,8 @@ MUNGE_UID=2201
 # ---- cleanup mode -------------------------------------------------------------
 if [ "$CLEAN" = "1" ]; then
   [ "$LAB_ROLE" = "login" ] || die "--clean runs on the login node (the staged files are owned there)"
-  rm -rf "$STAGE"
-  log "removed $STAGE (staged munge key and template)"
+  rm -f "$STAGE/munge.key" "$STAGE/slurm.conf.template" "$STAGE/README.txt"
+  log "removed the staged munge key, template and checklist from $STAGE (the RPMs stay)"
   exit 0
 fi
 
@@ -64,13 +74,42 @@ done
 # ---- repositories -------------------------------------------------------------
 dnf -y install dnf-plugins-core >/dev/null
 dnf config-manager --set-enabled crb >/dev/null 2>&1 || warn "could not enable the CRB repository (continuing)"
-dnf -y --setopt=install_weak_deps=False install epel-release >/dev/null 2>&1 || warn "could not enable EPEL, where the Slurm packages live (continuing)"
+dnf -y --setopt=install_weak_deps=False install epel-release >/dev/null 2>&1 || warn "could not enable EPEL, where munge lives (continuing)"
 dnf -y makecache >/dev/null 2>&1 || warn "could not refresh package metadata"
-avail="$(dnf -q repoquery --qf '%{name}-%{version}' slurm slurm-slurmctld slurm-slurmd 2>/dev/null | sort -u | tr '\n' ' ')"
-if [ -n "$avail" ]; then
-  log "Slurm packages available: $avail"
-else
-  warn "no Slurm packages found in the enabled repositories. Slurm comes from EPEL: check that the node can reach the internet and run: dnf repolist"
+
+# ---- Slurm RPMs: built once on the login node ----------------------------------
+RPMS="$STAGE/rpms"
+if [ "$LAB_ROLE" = "login" ]; then
+  mkdir -p "$RPMS"
+  if ls "$RPMS"/slurm-"$VERSION"-*.rpm >/dev/null 2>&1; then
+    log "Slurm $VERSION RPMs already built in $RPMS (skipping the build)"
+  else
+    log "building Slurm $VERSION from source (about 10 minutes; later runs skip it)"
+    dnf -y --setopt=install_weak_deps=False install rpm-build gcc make autoconf automake python3 \
+      readline-devel munge-devel pam-devel mariadb-devel http-parser-devel json-c-devel perl-ExtUtils-MakeMaker perl-devel \
+      dbus-devel libbpf-devel kernel-headers systemd-devel pkgconf-pkg-config bzip2 curl >/dev/null
+    BUILD="$(mktemp -d /var/tmp/slurm-build.XXXXXX)"
+    tarball="slurm-$VERSION.tar.bz2"
+    curl -fsSL --retry 3 -o "$BUILD/$tarball" "https://download.schedmd.com/slurm/$tarball" \
+      || die "could not download $tarball from download.schedmd.com (check the version and the network)"
+    if [ "$VERSION" = "$DEFAULT_VERSION" ]; then want="$DEFAULT_SHA256"
+    else
+      want="$(curl -fsSL --retry 3 https://download.schedmd.com/slurm/SHA256 | awk -v f="$tarball" '$2 == f {print $1}')"
+      [ -n "$want" ] || die "no checksum for $tarball on download.schedmd.com/slurm/SHA256"
+      warn "building a non-default version ($VERSION); the lab was tested with $DEFAULT_VERSION"
+    fi
+    got="$(sha256sum "$BUILD/$tarball" | awk '{print $1}')"
+    [ "$got" = "$want" ] || die "checksum of $tarball does not match (expected $want, got $got); not building it"
+    log "checksum verified: $got"
+    rpmbuild -ta --without debug --define "_topdir $BUILD/rpmbuild" "$BUILD/$tarball" >"$BUILD/build.log" 2>&1 \
+      || { tail -n 20 "$BUILD/build.log" >&2; die "the Slurm build failed (full log: $BUILD/build.log)"; }
+    cp "$BUILD"/rpmbuild/RPMS/*/*.rpm "$RPMS"/
+    rm -rf "$BUILD"
+    log "built $(ls "$RPMS"/*.rpm | wc -l) packages for Slurm $VERSION into $RPMS"
+  fi
+  chmod 755 "$STAGE" "$RPMS"; chmod 644 "$RPMS"/*.rpm
+elif ! ls "$RPMS"/slurm-*.rpm >/dev/null 2>&1; then
+  die "no Slurm packages in $RPMS. Run this provisioner on the login node first (and check that /shared is mounted)."
 fi
 
 # ---- accounts with identical IDs on every node --------------------------------
@@ -143,6 +182,8 @@ SlurmctldLogFile=/var/log/slurm/slurmctld.log
 SlurmdLogFile=/var/log/slurm/slurmd.log
 AccountingStorageType=accounting_storage/none
 JobAcctGatherType=jobacct_gather/none
+# The lab has no mail system; without this slurmctld logs 'MailProg is invalid'
+MailProg=/bin/true
 
 # --- nodes (one line per compute node) ---
 ${lines}
@@ -162,11 +203,13 @@ template is next to this file. Munge and Slurm are NOT running yet.
         munge -n | unmunge            (should say STATUS: Success)
     Then prove it works ACROSS nodes (clocks must agree):
         munge -n | ssh <other-node> unmunge
- 2. Find the Slurm packages (dnf search slurm). Install the controller side on login and the
-    node side on the compute nodes. Note which packages each node needs.
+ 2. The Slurm packages were built for you in /shared/slurm-lab/rpms (ls that directory). Install
+    the controller side on login and the node side on the compute nodes, with dnf so that the
+    dependencies come along:  sudo dnf install /shared/slurm-lab/rpms/<package files>
+    Work out which packages each kind of node needs (the names tell you), and note them.
  3. On a compute node run 'slurmd -C' and read the RealMemory value.
- 4. Copy slurm.conf.template to /etc/slurm/slurm.conf, replace CHANGE_ME, and make the file
-    identical on every node.
+ 4. Create /etc/slurm (the packages do not), copy slurm.conf.template to /etc/slurm/slurm.conf,
+    replace CHANGE_ME, and make the file identical on every node.
  5. Create the directories named in slurm.conf (spool, log, run) and give them to the 'slurm' user.
  6. Start slurmctld on login and slurmd on the compute nodes (enable them too).
  7. Check: sinfo   squeue   srun -N1 hostname
