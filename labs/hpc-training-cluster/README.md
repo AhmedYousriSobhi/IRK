@@ -82,9 +82,9 @@ hpc-training-cluster/
 | Module | What you practice | Status |
 |---|---|---|
 | [01-sysadmin-foundations](modules/01-sysadmin-foundations/README.md) | Storage and NFS, time and services, users and SSH keys, permissions and processes, name resolution | Chapter text tracked in [#6](https://github.com/AhmedYousriSobhi/IRK/issues/6) |
-| [02-troubleshooting](modules/02-troubleshooting/README.md) | Investigate planted faults from a user's ticket and write up the root cause | Planned |
-| [03-slurm](modules/03-slurm/README.md) | Prepare, build and verify Slurm; understand why a job is pending | Planned |
-| [04-health-monitoring](modules/04-health-monitoring/README.md) | Read a node's health at a glance | Planned |
+| [02-troubleshooting](modules/02-troubleshooting/README.md) | Investigate planted faults from a user's ticket and write up the root cause | Tools imported and tested |
+| [03-slurm](modules/03-slurm/README.md) | Prepare, build and verify Slurm; understand why a job is pending | Tools imported and tested |
+| [04-health-monitoring](modules/04-health-monitoring/README.md) | Read a node's health at a glance | Tool imported and tested |
 
 ## Chapter timeline
 
