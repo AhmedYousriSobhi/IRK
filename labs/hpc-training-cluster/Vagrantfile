@@ -1,0 +1,150 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# HPC training cluster: 1 login node + compute nodes (Rocky Linux 9), 1 GB RAM each by default.
+# Providers: VirtualBox, libvirt, QEMU (vagrant-qemu).
+#
+#   1. python lab.py check --save         (writes lab-profile.json: arch, provider, profile)
+#   2. vagrant up --provider=<provider>   (lab.py prints the exact command)
+#
+# This file only describes the machines. Setup logic lives in core/provision-base.sh, and every
+# module under modules/ may add tools (modules/<name>/bin/) and an on-demand provisioner
+# (modules/<name>/provision.sh, run with: vagrant provision --provision-with <name>).
+# Slurm is NOT installed here (chapter 7); SSH keys between nodes are a chapter 3 exercise.
+#
+# Settings (environment variables, all optional):
+#   LAB_BOX / LAB_BOX_URL   box name / direct link or path to a .box file (see BOX below)
+#   LAB_MEM_MB    RAM per node, default 1024        LAB_LOGIN_MEM_MB  RAM for the login node only
+#   LAB_CPUS      vCPUs per node, default 1         LAB_COMPUTE       compute nodes (default 2, or 1 on a 'reduced' laptop)
+#   LAB_PASSWORD  password of the lab accounts, default hpclab
+#   LAB_SUBNET    first three octets of the private network, default 192.168.56
+#   LAB_VM_PREFIX prefix of the VM and network names, default hpc-  (change both to run next to another lab)
+# Example: LAB_LOGIN_MEM_MB=2048 vagrant up   (more room for Slurm in chapter 7)
+
+require 'json'
+
+LAB_DIR = __dir__
+profile_file = File.join(LAB_DIR, 'lab-profile.json')
+saved = {}
+if File.exist?(profile_file)
+  begin
+    saved = JSON.parse(File.read(profile_file))
+  rescue JSON::ParserError
+    warn 'lab: lab-profile.json is not valid JSON. Run: python lab.py check --save'
+  end
+else
+  warn 'lab: lab-profile.json not found, using defaults. Run: python lab.py check --save'
+end
+PROFILE = ENV['LAB_PROFILE'] || saved['profile'] || 'full'
+
+# Box. If the default download fails with HTTP 404 (distribution boxes move when a release is
+# archived), use a working file under a name of your own:
+#   export LAB_BOX=rocky9-lab
+#   export LAB_BOX_URL=<direct link to the .box file, or a path on your disk>
+# python lab.py check tests LAB_BOX_URL before vagrant up.
+BOX     = ENV['LAB_BOX'] || 'generic/rocky9'
+BOX_URL = ENV['LAB_BOX_URL']
+if saved['arch'] == 'aarch64' && !ENV['LAB_BOX'] && ARGV.first == 'up'
+  warn 'lab: this is an ARM machine; make sure the box has an arm64 build (set LAB_BOX / LAB_BOX_URL).'
+end
+
+MEM_MB       = (ENV['LAB_MEM_MB'] || 1024).to_i
+LOGIN_MEM_MB = (ENV['LAB_LOGIN_MEM_MB'] || MEM_MB).to_i
+CPUS         = (ENV['LAB_CPUS'] || 1).to_i
+COMPUTE      = [[(ENV['LAB_COMPUTE'] || (PROFILE == 'reduced' ? 1 : 2)).to_i, 1].max, 9].min
+PASSWORD     = ENV['LAB_PASSWORD']
+SUBNET       = ENV['LAB_SUBNET'] || '192.168.56'
+VM_PREFIX    = ENV['LAB_VM_PREFIX'] || 'hpc-'
+
+if PROFILE == 'hosted' && ARGV.first == 'up'
+  abort "lab: this machine is marked 'hosted' (too little RAM or an unsupported OS), so the lab " \
+        'should not run locally. Use a hosted VM instead, or set LAB_PROFILE=full to override.'
+end
+
+if %w[up provision reload].include?(ARGV.first)
+  required = %w[core/provision-base.sh core/bin/lab-verify.sh]
+  missing = required.reject { |f| File.exist?(File.join(LAB_DIR, f)) }
+  unless missing.empty?
+    abort "lab: missing #{missing.join(', ')} in #{LAB_DIR}\n" \
+          "Keep the core/ and modules/ folders next to the Vagrantfile, with their sub-folders:\n" \
+          "  #{required.join("\n  ")}"
+  end
+end
+
+# libvirt starts machines in parallel by default; compute nodes mount NFS from the login node,
+# so the login node must finish first. (--no-parallel on the command line does the same.)
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+NODES = [{ name: 'login', ip: "#{SUBNET}.10", role: 'login', mem: LOGIN_MEM_MB }]
+(1..COMPUTE).each do |i|
+  NODES << { name: "compute#{i}", ip: "#{SUBNET}.#{10 + i}", role: 'compute', mem: MEM_MB }
+end
+
+# Modules that ship an on-demand provisioner: modules/03-slurm/provision.sh is run with
+#   vagrant provision --provision-with slurm       (the number prefix is dropped)
+MODULE_PROVISIONERS = Dir.glob(File.join(LAB_DIR, 'modules', '*', 'provision.sh')).sort.map do |path|
+  dir = File.basename(File.dirname(path))
+  { name: dir.sub(/\A\d+-/, ''), dir: dir }
+end
+
+Vagrant.configure('2') do |config|
+  config.vm.box = BOX
+  config.vm.box_url = BOX_URL if BOX_URL
+  config.vm.boot_timeout = 600
+  # Shared folders need guest add-ons that differ per provider; files are copied instead.
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+
+  nodes_csv = NODES.map { |n| "#{n[:name]}=#{n[:ip]}" }.join(',')
+
+  NODES.each do |n|
+    config.vm.define n[:name], primary: n[:role] == 'login' do |node|
+      node.vm.hostname = n[:name]
+      node.vm.network 'private_network', ip: n[:ip], libvirt__network_name: "#{VM_PREFIX}lab"
+
+      node.vm.provider 'virtualbox' do |vb|
+        vb.name = "#{VM_PREFIX}#{n[:name]}"
+        vb.memory = n[:mem]
+        vb.cpus = CPUS
+        vb.linked_clone = true
+      end
+
+      node.vm.provider 'libvirt' do |lv|
+        lv.driver = 'kvm'
+        lv.default_prefix = VM_PREFIX
+        lv.memory = n[:mem]
+        lv.cpus = CPUS
+      end
+
+      node.vm.provider 'qemu' do |qe|
+        qe.memory = (n[:mem] % 1024).zero? ? "#{n[:mem] / 1024}G" : "#{n[:mem]}M"
+        qe.smp = "cpus=#{CPUS},sockets=1,cores=#{CPUS},threads=1"
+        # VM-to-VM networking needs the plugin's advanced networking (guarded for older versions).
+        qe.advanced_network = true if qe.respond_to?(:advanced_network=)
+      end
+
+      # 1) Fresh staging directory (re-provisioning must not nest an old copy inside it).
+      node.vm.provision 'stage-clean', type: 'shell', privileged: true, inline: 'rm -rf /tmp/lab'
+      # 2) Copy core/ and modules/ into the VM, side by side under /tmp/lab.
+      node.vm.provision 'stage', type: 'file', source: File.join(LAB_DIR, 'core'), destination: '/tmp/lab/core'
+      node.vm.provision 'stage-modules', type: 'file', source: File.join(LAB_DIR, 'modules'), destination: '/tmp/lab/modules'
+      # 3) Base setup. The sed removes Windows line endings that break bash scripts.
+      env = { 'LAB_NODE' => n[:name], 'LAB_IP' => n[:ip], 'LAB_ROLE' => n[:role], 'LAB_NODES' => nodes_csv }
+      env['LAB_PASSWORD'] = PASSWORD if PASSWORD
+      %w[SLURM_PREP_NO_KEY SLURM_PREP_CLEAN].each { |k| env[k] = ENV[k] if ENV[k] }
+      node.vm.provision 'base', type: 'shell', privileged: true, env: env, inline: <<~'SHELL'
+        find /tmp/lab -type f -exec sed -i 's/\r$//' {} +
+        bash /tmp/lab/core/provision-base.sh
+      SHELL
+
+      # Module provisioners only run when requested (refresh the scripts first):
+      #   vagrant provision --provision-with stage-clean,stage,stage-modules,<module>
+      MODULE_PROVISIONERS.each do |m|
+        node.vm.provision m[:name], type: 'shell', privileged: true, run: 'never', env: env,
+                          inline: <<~SHELL
+                            find /tmp/lab -type f -exec sed -i 's/\\r$//' {} +
+                            bash /tmp/lab/modules/#{m[:dir]}/provision.sh
+                          SHELL
+      end
+    end
+  end
+end

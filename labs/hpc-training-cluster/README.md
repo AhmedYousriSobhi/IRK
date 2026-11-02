@@ -12,7 +12,7 @@ A small virtual cluster for learning HPC system administration by doing. You wor
 | `compute1` | Compute node | 192.168.56.11 | 1 GB RAM, 1 vCPU |
 | `compute2` | Compute node | 192.168.56.12 | 1 GB RAM, 1 vCPU |
 
-- **OS:** Rocky Linux 9 (Alma 9 compatible).
+- **OS:** Rocky Linux 9. Other RHEL 9 clones are accepted by the scripts but not tested.
 - **Providers:** VirtualBox, libvirt, or QEMU, through Vagrant.
 - **Host needs:** 8 GB RAM for the full lab (4 GB for a reduced 2-node lab), about 50 GB free disk, CPU virtualization enabled, Python 3.8+.
 
