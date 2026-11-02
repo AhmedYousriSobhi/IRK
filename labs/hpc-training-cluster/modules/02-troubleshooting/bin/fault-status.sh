@@ -7,11 +7,12 @@
 # Exit code: 0 = fixed, 1 = not fixed yet, 2 = no exercise is active.
 set -u
 
+case "${1:-}" in -h|--help) sed -n '2,7p' "$0"; exit 0 ;; esac
+
 TOOL=/usr/local/bin/inject-fault
 [ -x "$TOOL" ] || { echo "fault-status: $TOOL not found. Run: vagrant provision" >&2; exit 2; }
 
 case "${1:-}" in
-  -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
   --ticket)  [ "$(id -u)" -eq 0 ] && exec "$TOOL" --ticket || exec sudo "$TOOL" --ticket ;;
   "")        ;;
   *)         echo "fault-status: unknown option '$1' (see --help)" >&2; exit 2 ;;
