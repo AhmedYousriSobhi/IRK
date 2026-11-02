@@ -145,7 +145,26 @@ If the scenario only works on one role, add it to `eligible()` and `role_note()`
 
 ## 6. The Slurm chapter
 
-(To be completed with the Slurm 26 build steps.)
+Chapter 7 uses [module 03-slurm](../modules/03-slurm/README.md). You prepare the nodes; the learners build the cluster.
+
+| When | Task | Command |
+|---|---|---|
+| Before the chapter | Make sure the login node can reach `download.schedmd.com` (the build downloads the source) | `vagrant ssh login -c "curl -sI https://download.schedmd.com/slurm/ \| head -1"` |
+| Start of the chapter | Prepare every node, `login` first (about 10 minutes on the login node, 1 minute on each compute node) | `vagrant provision <node> --provision-with stage-clean,stage,stage-modules,slurm` |
+| Optional | Make learners copy the munge key themselves (needs their chapter 3 SSH keys) | `SLURM_NO_KEY=1 vagrant provision <node> --provision-with stage-clean,stage,stage-modules,slurm` |
+| During | Learners follow `/shared/slurm-lab/README.txt` and use `slurm-verify` | |
+| End of the chapter | Remove the staged munge key, template and checklist from shared storage (the built packages stay) | `SLURM_CLEAN=1 vagrant provision login --provision-with stage-clean,stage,stage-modules,slurm` |
+
+Notes:
+
+- **Slurm is built from source.** The provisioner builds Slurm 26.05.5 once on the login node, checks the tarball's SHA-256, and puts the RPMs in `/shared/slurm-lab/rpms/`. EPEL only has 22.05, which upstream no longer supports. A repeat run skips the build; to rebuild, delete the RPMs in that directory.
+- **Updating the version.** Change `DEFAULT_VERSION` and `DEFAULT_SHA256` in [provision.sh](../modules/03-slurm/provision.sh) (the checksum comes from `https://download.schedmd.com/slurm/SHA256`), read the release notes, and run the whole chapter again. `SLURM_VERSION=<x.y.z>` builds another release without editing the file.
+- **Build dependencies matter.** Slurm 26 builds fine without `json-c-devel`, but `slurmctld` then refuses to start (`serializer_required: could not find plugin for application/json`). `http-parser-devel` is needed to avoid `http_parser` errors in the logs. If you change the dependency list, start the daemons before you trust the build.
+- **The staged key is world-readable** on the NFS share, a lab-only convenience. Always clean it up.
+- **The template** uses `proctrack/linuxproc` and `task/none`, so cgroup features are not exercised, and sets `MailProg=/bin/true` because the lab has no mail system. `RealMemory=CHANGE_ME` is deliberate: learners must read `slurmd -C`.
+- **The packages do not create `/etc/slurm`.** The checklist tells learners to create it.
+- **Memory.** 1 GB nodes are enough, including the build. `slurmctld` uses about 18 MB and `slurmd` about 11 MB. Adding `slurmdbd` and MariaDB was not tested.
+- **Common failures to watch for:** clocks that differ (munge), a munge key that differs between nodes, `RealMemory` larger than the node has (node drained), directories not owned by `slurm`, and a `slurm.conf` that differs between nodes. `slurm-verify` reports all of these.
 
 ## 7. Support tools for your own use
 
@@ -181,4 +200,4 @@ These are installed on every node and are useful when a learner asks for help or
 
 | Date | Change |
 |---|---|
-| 2026-11-03 | Imported into the repository: fault system, answer key (now [SOLUTIONS.md](SOLUTIONS.md)), seed table, recovery and maintenance notes. |
+| 2026-11-03 | Imported into the repository: fault system, answer key (now [SOLUTIONS.md](SOLUTIONS.md)), seed table, recovery and maintenance notes, and the Slurm chapter tasks for the source-built Slurm 26. |
