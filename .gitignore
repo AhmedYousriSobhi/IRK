@@ -1,1 +1,60 @@
-.claude
+# --- Claude Code (local settings/state) ---
+.claude/
+
+# --- Local clone of the GitHub wiki (docs/ is the source of truth) ---
+.wiki/
+
+# --- Vagrant / VMs ---
+.vagrant/
+*.box
+*.vdi
+*.vmdk
+*.ova
+
+# --- Ansible ---
+*.retry
+.vault_pass
+.vault_pass.txt
+vault-password*
+.ansible/
+
+# --- Docker / Singularity ---
+*.sif
+.docker-cache/
+
+# --- Secrets & credentials (never commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+*.token
+secrets/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# --- Logs, outputs, benchmark results ---
+*.log
+*.out
+*.err
+*.tmp
+results/
+output/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db

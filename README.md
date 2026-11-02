@@ -1,52 +1,61 @@
 # IRK (Infrastructure Run Kit)
 
-**IRK** is a unified toolkit and sandbox environment designed for High-Performance Computing (HPC) and AI infrastructure engineering. 
+**IRK** is a toolkit and sandbox for HPC and AI infrastructure engineers. It bridges daily operational support and experimental lab work: the same repo holds the scripts you run on live clusters and the reproducible environments you use to test changes before they reach bare metal.
 
-It serves two primary functions:
-1. **Operational Support:** A centralized collection of zero-dependency daily utilities, cluster telemetry scripts, and diagnostic tools.
-2. **Reproducible Labs:** A collection of isolated, contained virtual environments (using tools like Vagrant) to simulate multi-node clusters, benchmark storage, and test orchestration setups locally before bare-metal deployment.
+| Part | What it is |
+|------|------------|
+| **Support tools** (`bin/`, `support/`) | Zero-dependency Bash/Python utilities for cluster telemetry, node debugging, and daily operations (Slurm, NVIDIA DCGM, CUDA, storage). |
+| **Labs** (`labs/`) | Isolated, self-contained, reproducible environments (Vagrant, Ansible, Docker) that simulate multi-node clusters, benchmark, and test infrastructure changes. |
+
+> **Status:** early stage. The structure below is the target layout; directories appear as features land. See the [roadmap](SPEC.md#6-future-roadmap).
 
 ## Repository Structure
 
 ```text
 irk/
-├── bin/                 # Executable CLI tools intended for your $PATH
-├── support/             # Domain-specific helpers (Slurm, DCGM, storage checks)
-├── labs/                # Self-contained sandbox environments
-│   └── template/        # Boilerplate for bootstrapping new labs
-├── CLAUDE.md            # AI interaction guidelines and coding standards
-└── SPEC.md              # Technical architecture and repository rules
+├── bin/          # Executable CLI tools (add to $PATH)
+├── support/      # Domain helpers: cluster/, gpu/, storage/
+├── labs/         # Self-contained sandbox environments
+│   └── template/ # Boilerplate for a new lab
+├── docs/         # Local wiki (mirrors the GitHub wiki)
+├── CLAUDE.md     # AI assistant rules
+├── SPEC.md       # Architecture and repository rules
+└── README.md     # You are here
+```
 
-Getting Started
+## Getting Started
 
-To use the daily operational tools globally on your machine, clone the repository and add the bin/ directory to your $PATH.
-Bash
+Clone the repo and put `bin/` on your `$PATH`:
 
-git clone [https://github.com/yourusername/irk.git](https://github.com/yourusername/irk.git) ~/.irk
+```bash
+git clone git@github.com:AhmedYousriSobhi/IRK.git ~/.irk
 
-# Add to your .bashrc or .zshrc
+# Add to ~/.bashrc or ~/.zshrc
 export PATH="$HOME/.irk/bin:$PATH"
+```
 
-Labs
+Every script in `bin/` supports `--help`.
 
-The labs/ directory contains localized virtual environments for experimenting with infrastructure components (e.g., Slurm scheduling, GPU telemetry, container orchestration).
+## Labs
 
-Every lab is completely self-contained with its own README.md and configuration files (Vagrant, Ansible, etc.).
+Each lab lives in `labs/<name>/` with its own `README.md` stating its purpose, topology, and OS/RAM requirements. Typical usage:
 
-Example Workflow:
-Bash
+```bash
+cd labs/<lab-name>
+./up.sh      # or: vagrant up
+./down.sh    # or: vagrant destroy
+```
 
-cd labs/hpc-pocket-cluster
-vagrant up
-vagrant ssh login-node
+Labs default to lightweight VMs (about 1 GB RAM each). Check the lab's README before starting one.
 
-Note: Check the README.md inside each specific lab directory for hardware requirements (e.g., memory constraints per node) and setup instructions.
-Guidelines
+## Principles
 
-    Zero-Dependency: Scripts in bin/ and support/ should rely on standard Bash/Python built-ins wherever possible to ensure portability across different cluster environments.
+- **Zero dependency:** `bin/` and `support/` use standard Bash or Python 3 only.
+- **Safe by default:** Bash scripts use `set -euo pipefail`; operational scripts are idempotent.
+- **Self-contained labs:** a lab never depends on files outside its own directory (except documented `bin/` tools).
 
-    Idempotency: Operational and provisioning scripts are designed to be safe to run multiple times.
+## Documentation and Contributing
 
-    Modularity: Keep lab dependencies contained within their respective labs/<name> directory.
-
-For detailed architectural guidelines and contribution rules, refer to SPEC.md.
+- Documentation lives in [`docs/`](docs/Home.md) and is mirrored to the [GitHub wiki](https://github.com/AhmedYousriSobhi/IRK/wiki).
+- Work follows **issue → branch → draft PR into `dev`**; `dev` is merged to `main` at milestones. See [Development Workflow](docs/Development-Workflow.md).
+- Architecture and rules: [SPEC.md](SPEC.md).
