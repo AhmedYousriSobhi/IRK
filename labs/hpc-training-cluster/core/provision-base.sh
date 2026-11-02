@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# provision-base.sh - base setup for an HPC lab VM (Rocky / Alma / RHEL 9 family).
+# provision-base.sh - base setup for an HPC lab VM (Rocky Linux 9; other RHEL 9 clones are
+# accepted but untested).
 #
 # Run by the Vagrantfile as root, with these variables set:
 #   LAB_NODE   node name (login, compute1, ...)      LAB_IP     this node's private IP
@@ -22,7 +23,8 @@ NODES="${LAB_NODES:-}"
 LAB_PASSWORD="${LAB_PASSWORD:-hpclab}"
 LOGIN_NAME="login"
 SHARED="/shared"
-GUEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CORE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LAB_ROOT="$(dirname "$CORE_DIR")"   # core/ and modules/ are staged side by side
 RELEASE_FILE="/etc/hpc-lab-release"
 
 # Lab accounts: same UID/GID on every node (there is no LDAP in the lab).
@@ -185,13 +187,14 @@ fi
 log "lab users ready (alice, bob, carol); password is the lab password"
 
 # ---- lab helper tools -------------------------------------------------------
-if [ -d "$GUEST_DIR/bin" ]; then
-  for f in "$GUEST_DIR"/bin/*; do
-    [ -f "$f" ] || continue
-    install -m 0755 "$f" "/usr/local/bin/$(basename "${f%.sh}")"
-  done
-  log "installed lab tools into /usr/local/bin"
-fi
+# Tools come from core/bin and from every module's bin/ (the .sh extension is dropped).
+tools=0
+for f in "$CORE_DIR"/bin/* "$LAB_ROOT"/modules/*/bin/*; do
+  [ -f "$f" ] || continue
+  install -m 0755 "$f" "/usr/local/bin/$(basename "${f%.sh}")"
+  tools=$((tools + 1))
+done
+log "installed $tools lab tools into /usr/local/bin"
 
 # ---- let 'sudo <lab tool>' find /usr/local/bin (RHEL's sudo ignores it by default) --
 printf 'Defaults secure_path = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n' > /etc/sudoers.d/90-lab-path
