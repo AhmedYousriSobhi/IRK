@@ -19,7 +19,7 @@
 #   LAB_PASSWORD  password of the lab accounts, default hpclab
 #   LAB_SUBNET    first three octets of the private network, default 192.168.56
 #   LAB_VM_PREFIX prefix of the VM and network names, default hpc-  (change both to run next to another lab)
-# Example: LAB_LOGIN_MEM_MB=2048 vagrant up   (more room for Slurm in chapter 7)
+# Example: LAB_COMPUTE=3 LAB_MEM_MB=1536 vagrant up   (a bigger cluster; Slurm itself needs only ~15 MB per node)
 
 require 'json'
 
@@ -130,7 +130,8 @@ Vagrant.configure('2') do |config|
       # 3) Base setup. The sed removes Windows line endings that break bash scripts.
       env = { 'LAB_NODE' => n[:name], 'LAB_IP' => n[:ip], 'LAB_ROLE' => n[:role], 'LAB_NODES' => nodes_csv }
       env['LAB_PASSWORD'] = PASSWORD if PASSWORD
-      %w[SLURM_PREP_NO_KEY SLURM_PREP_CLEAN].each { |k| env[k] = ENV[k] if ENV[k] }
+      # Module settings reach the provisioners as SLURM_*  (for example SLURM_NO_KEY=1, see modules/03-slurm/provision.sh).
+      ENV.each { |k, v| env[k] = v if k.start_with?('SLURM_') }
       node.vm.provision 'base', type: 'shell', privileged: true, env: env, inline: <<~'SHELL'
         find /tmp/lab -type f -exec sed -i 's/\r$//' {} +
         bash /tmp/lab/core/provision-base.sh
