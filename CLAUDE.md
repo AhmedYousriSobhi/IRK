@@ -1,33 +1,24 @@
 # AI Assistant Instructions for IRK (Infrastructure Run Kit)
 
-## Project Context
-You are assisting with **IRK**, a collective repository containing daily operational support scripts, telemetry tools, and experimental lab setups for High-Performance Computing (HPC) and AI Infrastructure engineering.
+IRK is a repository of operational support scripts, telemetry tools, and reproducible lab environments for HPC and AI infrastructure engineering. Full details live in the docs; this file holds only the rules the assistant must follow.
 
-## Domain Knowledge
-- **Primary OS environment:** Linux (Rocky/Alma Linux 9, Ubuntu).
-- **Core Technologies:** Slurm, CUDA, NVIDIA DCGM, MPI, Vagrant, Ansible, Docker/Singularity.
-- **Hardware Context:** GPU clusters, Multi-node distributed setups, login/compute node topologies.
+## Source of Truth
+- Architecture and repo rules: [SPEC.md](SPEC.md). Do not modify it unless explicitly instructed.
+- Everything else is documented in [docs/](docs/Home.md) (the local wiki, mirrored to the GitHub wiki):
+  - [Repository Structure](docs/Repository-Structure.md)
+  - [Coding Standards](docs/Coding-Standards.md)
+  - [Lab Guide](docs/Lab-Guide.md)
+  - [Development Workflow](docs/Development-Workflow.md)
+- Do not duplicate documentation here. Update `docs/` instead.
 
-## Coding Standards & Guidelines
+## Workflow Rules
+- For every feature/modification/fix: open an issue, branch from `dev` (`<type>/<issue#>-<slug>`), open a **draft PR into `dev`**. Never commit directly to `dev` or `main`; `dev` is merged to `main` only at milestones.
+- Keep `docs/` (and `README.md` when user-facing) updated in the same PR as the change.
+- New lab: always include a local `README.md`. New script: decide between `bin/` (daily CLI) and a specific `labs/<name>/` (environment-specific).
+- Commits: use the repo's configured GitHub noreply email; no attribution lines in commits or PR descriptions.
+- Confirm before force-pushes, deleting branches, or anything affecting the remote beyond the current issue's branch.
 
-### 1. Scripting (`bin/` and `support/`)
-- Prefer pure Bash (`#!/usr/bin/env bash`) or standard Python 3 for portability.
-- **Zero-dependency efficiency:** Avoid introducing heavy third-party libraries unless absolutely necessary.
-- **Safety first:** Bash scripts must use `set -euo pipefail`.
-- **Idempotency:** Operational scripts should be safe to run multiple times without causing duplicate configurations or destructive overwrites.
-- Include a `--help` or `-h` flag for executable scripts in `bin/` explaining usage and required flags.
-
-### 2. Lab Environments (`labs/`)
-- Labs must be entirely reproducible and contained within their own directories.
-- Default to lightweight constraints unless specified (e.g., 1GB RAM per VM for local multi-node tests).
-- Configuration as Code: Prefer declarative setups (Vagrantfiles, Ansible playbooks) over manual shell provisioning steps where possible.
-
-### 3. Documentation
-- Write documentation in clean, standard Markdown.
-- Keep explanations empirical and structural.
-- When generating architecture diagrams or trees, use standard markdown code blocks (`text` or `mermaid`).
-
-## Interaction Protocol
-- When asked to create a new lab, always include a local `README.md` for that specific lab.
-- Do not modify `SPEC.md` unless explicitly instructed to update the architectural design.
-- If a user requests a new operational script, check if it belongs in the global `bin/` (daily CLI use) or a specific `labs/` directory (environment-specific).
+## Quick Standards (details in docs/Coding-Standards.md)
+- Bash: `#!/usr/bin/env bash`, `set -euo pipefail`, idempotent, `--help` for `bin/` tools. Python: standard library only unless unavoidable.
+- Labs: self-contained, declarative, about 1 GB RAM per VM by default.
+- Never commit secrets, logs, or VM artifacts (see `.gitignore`).
