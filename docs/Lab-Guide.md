@@ -18,7 +18,7 @@ Labs in `labs/` are isolated, reproducible environments to simulate, benchmark, 
 ## Adding a lab
 1. Open an issue ([workflow](Development-Workflow)).
 2. Branch `lab/<issue#>-<name>` from `dev`.
-3. Copy `labs/template/` to `labs/<name>/` and fill it in.
+3. Copy `labs/template/` to `labs/<name>/` and fill it in. The template holds a README skeleton, a small parameterised Vagrantfile (N nodes, RAM, CPUs, network and VM-name prefix as `LAB_*` variables), and `up.sh` / `down.sh` wrappers with `--help`.
 4. Add a page or entry for the lab in `docs/` and link it from [Home](Home).
 5. Open a draft PR into `dev`.
 
