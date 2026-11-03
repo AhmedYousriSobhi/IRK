@@ -1,0 +1,48 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# TEMPLATE lab: copy this folder to labs/<name>/ and edit. It builds a small cluster of identical
+# nodes: node1 (the "head" node) plus node2..nodeN. Providers: VirtualBox and libvirt.
+#
+# Settings (environment variables, all optional):
+#   LAB_BOX        box name, default generic/rocky9
+#   LAB_NODES      number of nodes, default 2 (1 to 9)
+#   LAB_MEM_MB     RAM per node in MB, default 1024
+#   LAB_CPUS       vCPUs per node, default 1
+#   LAB_SUBNET     first three octets of the private network, default 192.168.56
+#   LAB_VM_PREFIX  prefix of the VM and network names, default lab-  (change both subnet and prefix to run next to another lab)
+
+BOX       = ENV['LAB_BOX'] || 'generic/rocky9'
+NODES     = [[(ENV['LAB_NODES'] || 2).to_i, 1].max, 9].min
+MEM_MB    = (ENV['LAB_MEM_MB'] || 1024).to_i
+CPUS      = (ENV['LAB_CPUS'] || 1).to_i
+SUBNET    = ENV['LAB_SUBNET'] || '192.168.56'
+VM_PREFIX = ENV['LAB_VM_PREFIX'] || 'lab-'
+
+Vagrant.configure('2') do |config|
+  config.vm.box = BOX
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+
+  (1..NODES).each do |i|
+    config.vm.define "node#{i}", primary: i == 1 do |node|
+      node.vm.hostname = "node#{i}"
+      node.vm.network 'private_network', ip: "#{SUBNET}.#{10 + i}", libvirt__network_name: "#{VM_PREFIX}net"
+
+      node.vm.provider 'virtualbox' do |vb|
+        vb.name = "#{VM_PREFIX}node#{i}"
+        vb.memory = MEM_MB
+        vb.cpus = CPUS
+        vb.linked_clone = true
+      end
+
+      node.vm.provider 'libvirt' do |lv|
+        lv.default_prefix = VM_PREFIX
+        lv.memory = MEM_MB
+        lv.cpus = CPUS
+      end
+
+      # Put your setup here: a script in this folder, an Ansible playbook, or inline commands.
+      # node.vm.provision 'setup', type: 'shell', path: 'provision.sh', privileged: true
+    end
+  end
+end
