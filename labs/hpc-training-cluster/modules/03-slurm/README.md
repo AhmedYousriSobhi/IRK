@@ -90,4 +90,4 @@ The Slurm daemons are small: about 18 MB for `slurmctld` and 11 MB for `slurmd` 
 
 Remove Slurm's state by restoring the snapshot you took before this chapter (`vagrant snapshot save before-slurm` first), or by re-running the provisioner, which is safe but does not uninstall packages.
 
-> **Status:** the provisioner and both tools are imported and tested on a 3-node Rocky Linux 9 cluster with Slurm 26.05.5 (fresh `vagrant up`, provisioner, hand-built Slurm, `slurm-verify` with and without SSH keys between nodes). The written chapter text is not part of this module yet ([#6](https://github.com/AhmedYousriSobhi/IRK/issues/6)); the admin-side solution is tracked in [#5](https://github.com/AhmedYousriSobhi/IRK/issues/5).
+> **Status:** the provisioner and both tools are imported and tested on a 3-node Rocky Linux 9 cluster with Slurm 26.05.5 (fresh `vagrant up`, provisioner, hand-built Slurm, `slurm-verify` with and without SSH keys between nodes). Admin tasks for the Slurm chapters are in [admin/](../../admin/README.md).

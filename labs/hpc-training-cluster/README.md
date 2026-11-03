@@ -2,7 +2,7 @@
 
 A small virtual cluster for learning HPC system administration by doing. You work through a sequence of chapters, from your first login to building Slurm, and practice troubleshooting on problems planted in the cluster. Nothing touches a real system.
 
-> **Status:** being imported file by file ([#4](https://github.com/AhmedYousriSobhi/IRK/issues/4)). Only the structure and this overview exist so far. Links to modules and chapters are filled in as they land.
+> **Status:** the cluster, all modules' tools and chapters 1 to 5 are in. Chapters 6 to 9 are documented in their module READMEs. Admin material (seeds, answer key) is in [admin/](admin/README.md); keep it away from learners.
 
 ## Architecture
 
