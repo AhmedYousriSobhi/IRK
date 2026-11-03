@@ -48,6 +48,10 @@ cd labs/<lab-name>
 
 Labs default to lightweight VMs (about 1 GB RAM each). Check the lab's README before starting one.
 
+| Lab | What it is |
+|-----|-----------|
+| [hpc-training-cluster](labs/hpc-training-cluster/README.md) | A small Rocky Linux 9 cluster (1 login + 2 compute nodes, 1 GB each) for learning HPC administration, troubleshooting and Slurm, chapter by chapter. Start with `python3 lab.py check` in that folder. |
+
 ## Principles
 
 - **Zero dependency:** `bin/` and `support/` use standard Bash or Python 3 only.

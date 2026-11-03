@@ -1,0 +1,8 @@
+# Keep Unix line endings for everything that runs inside the VMs (Windows checkouts included)
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+Vagrantfile text eol=lf
+*.md text eol=lf
+*.box binary
+*.zip binary
