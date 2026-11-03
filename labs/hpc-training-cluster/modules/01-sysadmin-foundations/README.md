@@ -1,6 +1,6 @@
 # 01 - Sysadmin foundations
 
-Chapters 1 to 5. You learn the everyday Linux administration skills that a cluster depends on, using the lab's nodes. Nothing here needs Slurm: you practice on the plain cluster that `vagrant up` builds.
+Chapters 1 to 5, about 5 hours in total. You learn the everyday Linux administration skills that a cluster depends on, using the lab's nodes. Nothing here needs Slurm: you practice on the plain cluster that `vagrant up` builds.
 
 This module has no tools or provisioner of its own. Everything it uses is set up by `core/`, and the health check `lab-verify` tells you whether a node is in the state the chapters expect.
 
@@ -25,7 +25,7 @@ The default password for the lab accounts is `hpclab` (see the security note in 
 
 ## Chapters
 
-### Chapter 1 - Storage and the shared filesystem
+### [Chapter 1 - Storage and the shared filesystem](chapters/01-storage.md)
 
 You find out where data lives and why a cluster shares it.
 
@@ -33,7 +33,7 @@ You find out where data lives and why a cluster shares it.
 - Follow a file from one node to another through the NFS export on `login`.
 - See what happens to a compute node when `/shared` is not mounted, and fix it.
 
-### Chapter 2 - Time sync and services
+### [Chapter 2 - Time sync and services](chapters/02-time-and-services.md)
 
 You learn to inspect and control services, and why clocks matter.
 
@@ -41,7 +41,7 @@ You learn to inspect and control services, and why clocks matter.
 - Check clock synchronization with `chronyc` and `timedatectl`, and repair it.
 - Schedule a job with `cron`.
 
-### Chapter 3 - Users, groups and SSH keys
+### [Chapter 3 - Users, groups and SSH keys](chapters/03-users-and-ssh.md)
 
 You manage accounts the way a cluster expects them.
 
@@ -49,21 +49,21 @@ You manage accounts the way a cluster expects them.
 - Create a key pair and set up passwordless SSH between nodes.
 - Use `ssh`, `scp` and `rsync` to move work around.
 
-### Chapter 4 - Permissions and processes
+### [Chapter 4 - Permissions and processes](chapters/04-permissions-and-processes.md)
 
 You control who can touch what, and what is running.
 
 - Read and change permissions, ownership, and the setgid bit on a shared project directory.
 - Find and stop processes (`ps`, `top`, `htop`, `kill`, `lsof`).
-- Meet the first SELinux denial, and read it instead of switching SELinux off.
+- Meet an SELinux denial, and read it instead of switching SELinux off.
 
-### Chapter 5 - Name resolution and hosts
+### [Chapter 5 - Name resolution and hosts](chapters/05-name-resolution.md)
 
 You learn how a node turns a name into an address.
 
 - Read `/etc/hosts` and `/etc/nsswitch.conf`, and test with `getent hosts`.
 - Diagnose a name that resolves to the wrong address.
-- Test connectivity layer by layer (`ping`, `ss`, `curl`, `nc`).
+- Test connectivity layer by layer (`ping`, `ss`, `curl`, and Bash's `/dev/tcp`).
 
 ## Check your work
 
@@ -78,4 +78,4 @@ Run `lab-verify` on a node after each chapter. It checks hostname, name resoluti
 
 Chapter 6 (module [02-troubleshooting](../02-troubleshooting/README.md)) puts these skills to work on faults you did not cause.
 
-> **Status:** the list above is the chapter outline. The chapter text, exercises and checks are not written yet ([#6](https://github.com/AhmedYousriSobhi/IRK/issues/6)).
+> **Status:** the five chapters are written. The commands were run piece by piece on a 3-node Rocky Linux 9.3 cluster, and the output the chapters describe is what that cluster printed. The chapters have not yet been followed start to finish by someone new to Linux. Chapters 6 to 9 live in the READMEs of modules 02, 03 and 04.

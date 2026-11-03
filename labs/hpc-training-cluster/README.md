@@ -81,7 +81,7 @@ hpc-training-cluster/
 
 | Module | What you practice | Status |
 |---|---|---|
-| [01-sysadmin-foundations](modules/01-sysadmin-foundations/README.md) | Storage and NFS, time and services, users and SSH keys, permissions and processes, name resolution | Chapter text tracked in [#6](https://github.com/AhmedYousriSobhi/IRK/issues/6) |
+| [01-sysadmin-foundations](modules/01-sysadmin-foundations/README.md) | Storage and NFS, time and services, users and SSH keys, permissions and processes, name resolution | Chapters 1 to 5 written |
 | [02-troubleshooting](modules/02-troubleshooting/README.md) | Investigate planted faults from a user's ticket and write up the root cause | Tools imported and tested |
 | [03-slurm](modules/03-slurm/README.md) | Prepare, build and verify Slurm; understand why a job is pending | Tools imported and tested |
 | [04-health-monitoring](modules/04-health-monitoring/README.md) | Read a node's health at a glance | Tool imported and tested |
@@ -93,11 +93,11 @@ Self-paced. Each chapter assumes the earlier ones. Times are estimates.
 | Chapter | Topic | Module | Est. time |
 |---|---|---|---|
 | 0 | Set up the lab, first login, health check, snapshot | core | 1-2 h |
-| 1 | Storage and the shared filesystem | 01 | 1 h |
-| 2 | Time sync and services | 01 | 1 h |
-| 3 | Users, groups and SSH keys | 01 | 1.5 h |
-| 4 | Permissions and processes | 01 | 1 h |
-| 5 | Name resolution and hosts | 01 | 45 min |
+| 1 | [Storage and the shared filesystem](modules/01-sysadmin-foundations/chapters/01-storage.md) | 01 | 1 h |
+| 2 | [Time sync and services](modules/01-sysadmin-foundations/chapters/02-time-and-services.md) | 01 | 1 h |
+| 3 | [Users, groups and SSH keys](modules/01-sysadmin-foundations/chapters/03-users-and-ssh.md) | 01 | 1.5 h |
+| 4 | [Permissions and processes](modules/01-sysadmin-foundations/chapters/04-permissions-and-processes.md) | 01 | 1 h |
+| 5 | [Name resolution and hosts](modules/01-sysadmin-foundations/chapters/05-name-resolution.md) | 01 | 45 min |
 | 6 | Troubleshooting practice | 02 | 2-3 h |
 | 7 | Prepare and build Slurm | 03 | 3-4 h |
 | 8 | Verify Slurm, read pending jobs, collect evidence | 03 | 1-2 h |
