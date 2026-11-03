@@ -52,4 +52,4 @@ To start over, run `sudo inject-fault --revert`. It undoes the problem and resto
 
 `lab-verify` (from the core) should report `HEALTHY` again once the problem is fixed or reverted.
 
-> **Status:** the tools are imported and tested. The written chapter text for chapter 6 is not part of this module yet, and the admin-side solutions are tracked in [#5](https://github.com/AhmedYousriSobhi/IRK/issues/5).
+> **Status:** the tools are imported and tested. Admins find the seed table and answer key in [admin/](../../admin/README.md).

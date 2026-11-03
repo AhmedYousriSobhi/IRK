@@ -43,4 +43,4 @@ Thresholds: load above 1 per CPU warns and above 2 fails; available memory under
 2. Break something and run it again, then fix it and watch the verdict return: stop a service (`sudo systemctl stop chronyd`), drain a node (`sudo scontrol update NodeName=compute1 State=DRAIN Reason=test`), or start a few busy loops.
 3. Combine it with chapter 6: plant a problem with `sudo inject-fault random`, then let `node-health` point you at the area before you dig in.
 
-> **Status:** the tool is imported and tested. The written chapter text is not part of this module yet ([#6](https://github.com/AhmedYousriSobhi/IRK/issues/6)).
+> **Status:** the tool is imported and tested. This README is the chapter text.
